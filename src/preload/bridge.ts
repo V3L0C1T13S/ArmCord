@@ -1,4 +1,5 @@
 import {contextBridge, ipcRenderer} from "electron";
+import {initializeNativeBridge} from "../discordnative/native_bridge";
 import {injectTitlebar} from "./titlebar";
 const CANCEL_ID = "desktop-capturer-selection__cancel";
 const desktopCapturer = {
@@ -35,7 +36,7 @@ async function getDisplayMediaSelector() {
   </ul>
 </div>`;
 }
-contextBridge.exposeInMainWorld("armcord", {
+export const armcordNative = {
     window: {
         show: () => ipcRenderer.send("win-show"),
         hide: () => ipcRenderer.send("win-hide"),
@@ -60,7 +61,9 @@ contextBridge.exposeInMainWorld("armcord", {
     packageVersion: ipcRenderer.sendSync("get-package-version", "app-version"),
     splashEnd: () => ipcRenderer.send("splashEnd"),
     openSettingsWindow: () => ipcRenderer.send("openSettingsWindow")
-});
+};
+contextBridge.exposeInMainWorld("armcord", armcordNative);
+initializeNativeBridge();
 let windowCallback: (arg0: object) => void;
 contextBridge.exposeInMainWorld("ArmCordRPC", {
     listen: (callback: any) => (windowCallback = callback)
