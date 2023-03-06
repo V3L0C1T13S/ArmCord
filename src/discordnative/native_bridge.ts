@@ -1,21 +1,21 @@
 import {contextBridge, ipcRenderer} from "electron";
 import {armcordNative} from "../preload/bridge";
-
-const stub = (name: string) => () => `stub! ${name}`;
+import {eventEmitter} from "./event";
+import {stub, todo} from "./util";
 
 export function initializeNativeBridge() {
     const app = {
         dock: {
-            bounce: stub("bounce"),
+            bounce: todo("bounce"),
             getBuildNumber: stub("getBuildNumber"),
             getDefaultDoubleClickAction: stub("getDefaultDoubleClickAction"),
             getModuleVersions: stub("getModuleVersions"),
             getPath: stub("getPath"),
             getReleaseChannel: stub("getReleaseChannel"),
             getVersion: stub("getVersion"),
-            registerUserInteractionHandler: stub("registerUserInteractionHandler"),
-            relaunch: stub("relaunch"),
-            setBadgeCount: stub("setBadgeCount")
+            registerUserInteractionHandler: todo("registerUserInteractionHandler"),
+            relaunch: todo("relaunch"),
+            setBadgeCount: todo("setBadgeCount")
         },
         getBuildNumber: () => null,
         getVersion: () => "0.0.25",
@@ -66,6 +66,31 @@ export function initializeNativeBridge() {
                     case "discord_erlpack": {
                         return {};
                     }
+                    case "discord_rpc": {
+                        // TODO: Integrate with ARRPC?
+                        const rpcHttp = {
+                            ...new eventEmitter()
+                        };
+                        const rpcWs = {
+                            ...new eventEmitter()
+                        };
+                        const rpcNet = {
+                            ...new eventEmitter()
+                        };
+                        return {
+                            RPCWebSocket: {
+                                http: {
+                                    createServer: () => rpcHttp
+                                },
+                                ws: {
+                                    Server: () => rpcWs
+                                },
+                                net: {
+                                    createServer: () => rpcNet
+                                }
+                            }
+                        };
+                    }
                     default: {
                         console.log("unimplemented module", name);
                         break;
@@ -74,8 +99,8 @@ export function initializeNativeBridge() {
             }
         },
         process: {
-            platform: "linux",
-            arch: "x64",
+            platform: ipcRenderer.sendSync("discord-get-os-name"),
+            arch: ipcRenderer.sendSync("discord-get-os-arch"),
             env: {
                 DISCORD_DISALLOW_POPUPS: undefined,
                 DISCORD_GATEWAY_PLAINTEXT: undefined,
@@ -88,8 +113,8 @@ export function initializeNativeBridge() {
             }
         },
         os: {
-            release: "5.19.0-35-generic",
-            arch: "x64"
+            release: ipcRenderer.sendSync("discord-get-os-release"),
+            arch: ipcRenderer.sendSync("discord-get-os-arch")
         },
         app,
         clipboard: {
@@ -100,13 +125,20 @@ export function initializeNativeBridge() {
             read: stub("read")
         },
         ipc: {
-            invoke: stub("invoke"),
-            on: stub("on"),
-            send: stub("send")
+            invoke: todo("ipc.invoke"),
+            on: todo("ipc.on"),
+            send: (event: string, ...args: any) => {
+                switch (event) {
+                    default: {
+                        console.log("unhandled discordnative ipc.send", event, ...args);
+                        break;
+                    }
+                }
+            }
         },
         gpuSettings: {
             getEnableHardwareAcceleration: async () => true,
-            setEnableHardwareAcceleration: stub("setEnableHardwareAcceleration")
+            setEnableHardwareAcceleration: todo("setEnableHardwareAcceleration")
         },
         window: {
             USE_OSX_NATIVE_TRAFFIC_LIGHTS: true,
@@ -148,9 +180,9 @@ export function initializeNativeBridge() {
             flushCookies: stub("flushCookies"),
             flushDNSCache: stub("flushDNSCache"),
             flushStorageData: stub("flushStorageData"),
-            getCPUCoreCount: stub("getCPUCoreCount"),
+            getCPUCoreCount: () => ipcRenderer.sendSync("discord-get-cpu-core-count"),
             getCurrentCPUUsagePercent: stub("getCurrentCPUUsagePercent"),
-            getCurrentMemoryUsageKB: stub("getCurrentMemoryUsageKB"),
+            getCurrentMemoryUsageKB: () => ipcRenderer.sendSync("discord-get-memory-usage-kb"),
             getLastCrash: stub("getLastCrash"),
             getMainArgvSync: stub("getMainArgvSync"),
             purgeMemory: stub("purgeMemory")
@@ -179,5 +211,5 @@ export function initializeNativeBridge() {
         remotePowerMonitor: powerMonitor
     };
     contextBridge.exposeInMainWorld("DiscordNative", discordNative);
-    contextBridge.exposeInMainWorld("discordVideo", stub("discordVideo"));
+    contextBridge.exposeInMainWorld("discordVideo", todo("discordVideo"));
 }

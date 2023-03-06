@@ -146,5 +146,22 @@ export function registerIpc() {
             event.returnValue = false;
         }
     });
+    ipcMain.on("discord-get-os-name", (event) => {
+        // FIXME: we should probably spoof non-standard OS names (ex. freebsd),
+        // otherwise we could leak that we're using an unofficial client
+        event.returnValue = os.platform();
+    });
+    ipcMain.on("discord-get-os-release", (event) => {
+        event.returnValue = os.release();
+    });
+    ipcMain.on("discord-get-os-arch", (event) => {
+        event.returnValue = os.arch();
+    });
+    ipcMain.on("discord-get-cpu-core-count", (event) => {
+        event.returnValue = os.cpus().length;
+    });
+    ipcMain.on("discord-get-memory-usage-kb", (event) => {
+        event.returnValue = process.memoryUsage().heapUsed;
+    });
     ipcMain.handle("DESKTOP_CAPTURER_GET_SOURCES", (event, opts) => desktopCapturer.getSources(opts));
 }
