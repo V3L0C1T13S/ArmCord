@@ -94,7 +94,7 @@ async function doAfterDefiningTheWindow() {
         // Allow about:blank (used by Vencord QuickCss popup)
         if (url === "about:blank") return {action: "allow"};
         // Allow Discord stream popout
-        if (url === "https://discord.com/popout") return {action: "allow"};
+        if (url === "http://localhost:3000/popout") return {action: "allow"};
         if (url.startsWith("https:") || url.startsWith("http:") || url.startsWith("mailto:")) {
             shell.openExternal(url);
         } else {
@@ -248,7 +248,7 @@ async function doAfterDefiningTheWindow() {
             window.armcord.splashEnd();
             switch (window.armcord.channel) {
                 case "stable":
-                    window.location.replace("https://discord.com/app");
+                    window.location.replace("http://localhost:3000/app");
                     break;
                 case "canary":
                     window.location.replace("https://canary.discord.com/app");
@@ -257,10 +257,10 @@ async function doAfterDefiningTheWindow() {
                     window.location.replace("https://ptb.discord.com/app");
                     break;
                 case undefined:
-                    window.location.replace("https://discord.com/app");
+                    window.location.replace("http://localhost:3000/app");
                     break;
                 default:
-                    window.location.replace("https://discord.com/app");
+                    window.location.replace("http://localhost:3000/app");
             }
             `);
     } else {
@@ -343,7 +343,7 @@ export function createInviteWindow(code: string) {
             spellcheck: true
         }
     });
-    var formInviteURL = `https://discord.com/invite/${code}`;
+    var formInviteURL = `http://localhost:3000/invite/${code}`;
     inviteWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
         if (details.url.includes("ws://")) return callback({cancel: true});
         return callback({});

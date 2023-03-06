@@ -48,8 +48,8 @@ class RPCServer extends EventEmitter {
                     premium_type: 0
                 },
                 config: {
-                    api_endpoint: "//discord.com/api",
-                    cdn_host: "cdn.discordapp.com",
+                    api_endpoint: "//localhost:3000/api",
+                    cdn_host: "localhost:3001",
                     environment: "production"
                 }
             }
